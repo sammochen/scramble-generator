@@ -86,6 +86,84 @@ struct Cube {
                2);
     }
 
+    bool isSpecialChar(char c) {
+        std::string specialChars = "'w2";
+        return specialChars.find(c) != string::npos;
+    }
+
+    void parse(const std::string& moves) {
+        std::string cur;
+        for (auto c : moves) {
+            if (c == ')' || c == '(' || c == ' ') continue;
+            if (!isSpecialChar(c)) {
+                parseOne(cur);
+                cur = "";
+            }
+            cur.push_back(c);
+        }
+        parseOne(cur);
+    }
+
+    void parseOne(std::string s) {
+        if (s.size() == 0) return;  // do nothing
+
+        cout << "parsing one " << s << endl;
+
+        const std::string baseChars = "FRUBLDMES";
+        std::vector<std::function<void(void)>> baseMoves = {
+            bind(&Cube::F, this), bind(&Cube::R, this), bind(&Cube::U, this),
+            bind(&Cube::B, this), bind(&Cube::L, this), bind(&Cube::D, this),
+            bind(&Cube::M, this), bind(&Cube::E, this), bind(&Cube::S, this)};
+
+        const int numBaseMoves = baseMoves.size();
+        for (int i = 0; i < numBaseMoves; i++) {
+            if (s.size() == 1 && s[0] == baseChars[i]) {
+                return baseMoves[i]();
+            }
+        }
+
+        const std::string first = s.substr(0, 1), extra = s.substr(1);
+
+        // double moves
+        if (extra == "2" || extra == "2'") {
+            parseOne(first);
+            parseOne(first);
+            return;
+        }
+
+        // reverse moves
+        if (extra == "'") {
+            parseOne(first);
+            parseOne(first);
+            parseOne(first);
+        }
+
+        // wide moves, in w notation (convert to lower case first)
+        if (extra == "w") {
+            return parseOne(string(1, tolower(first[0])));
+        }
+
+        // wide moves, in lower case
+        if (first == "u") {
+            return U(), E(), E(), E();
+        } else if (first == "r") {
+            return R(), M(), M(), M();
+        } else if (first == "f") {
+            return F(), S();
+        } else if (first == "l") {
+            return L(), M();
+        } else if (first == "d") {
+            return D(), E();
+        } else if (first == "b") {
+            return B(), S(), S(), S();
+        }
+
+        assert(false);
+    }
+
+    /**
+     * Quarter turns
+     */
     void F() {
         rotateFace(1);
         rotate({{0, 6},
@@ -206,6 +284,9 @@ struct Cube {
                3);
     }
 
+    /**
+     * Slices
+     */
     void M() {
         rotate({{0, 1},
                 {0, 4},
@@ -270,12 +351,7 @@ int main() {
     Cube cube;
     cube.print();
 
-    // cube.F();
-    cube.M();
-    cube.M();
-    cube.S();
-    cube.S();
-    cube.E();
-    cube.E();
+    cube.parse("U2 L2 Rw r (ULRU)");
+
     cube.print();
 }
