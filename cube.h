@@ -19,11 +19,19 @@ struct Cube {
     };
 
     std::string colors;
-    Cube() {
-        colors = string(9, 'Y') + string(9, 'R') + string(9, 'G') + string(9, 'O') +
-                 string(9, 'B') + string(9, 'W');
+    Cube()
+        : Cube(string(9, 'Y') + string(9, 'R') + string(9, 'G') + string(9, 'O') + string(9, 'B') +
+               string(9, 'W')) {}
+
+    Cube(const std::string& colors) : colors(colors) {
+        if (colors.size() != 6 * 9) {
+            assert(false);
+        }
     }
-    Cube(const std::string& colors) : colors(colors) {}
+
+    bool operator==(const Cube& rhs) {
+        return colors == rhs.colors;
+    }
 
     void print() {
         cout << endl;
@@ -86,16 +94,12 @@ struct Cube {
 
         // double moves
         if (extra == "2" || extra == "2'") {
-            parseOne(first);
-            parseOne(first);
-            return;
+            return parseOne(first), parseOne(first);
         }
 
         // reverse moves
         if (extra == "'") {
-            parseOne(first);
-            parseOne(first);
-            parseOne(first);
+            return parseOne(first), parseOne(first), parseOne(first);
         }
 
         // wide moves, in w notation (convert to lower case first)
